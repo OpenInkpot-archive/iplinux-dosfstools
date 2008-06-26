@@ -1,3 +1,18 @@
+dosfstools (2.11-4) unstable; urgency=low
+
+  * Redone debian packaging from scratch.
+  * Both stop avoiding -O2 and stop adding -fno-strict-aliasing to OPTFLAGS on
+    alpha; seems not to be required anymore.
+  * Added patch from Jakub Jelinek <jakub@redhat.com> to support
+    -D_FORTIFY_SOURCE=2 (for future use).
+  * Added patch from Jeremy Katz <katzj@redhat.com> to add dosfslabel
+    (originally by Peter Jones).
+  * Added patch from Pavol Rusnak <prusnak@suse.cz> to use O_EXCL in mkdosfs.
+  * Added patch from Petr Gajdos <pgajdos@suse.cz> to automatically determine
+    sector size of the device.
+
+ -- Daniel Baumann <daniel@debian.org>  Thu, 26 Jun 2008 13:13:00 +0200
+
 dosfstools (2.11-3) unstable; urgency=low
 
   * New maintainer (Closes: #488018).
@@ -21,31 +36,6 @@ dosfstools (2.11-2.2) unstable; urgency=low
 
  -- Andreas Barth <aba@not.so.argh.org>  Sat,  9 Jun 2007 21:18:21 +0000
 
-dosfstools (2.11-2.1ubuntu3) feisty; urgency=low
-
-  * Fix a hang when dosfsck runs out of names for renamed files.
-    - Print an error message instead of doing an infinite loop.
-    - Using the file extension for more available names.
-    Thanks to Onno Benschop for providing the initial fix.
-    Closes: LP#68153.
-
- -- Stefan Potyra <sistpoty@ubuntu.com>  Tue, 19 Dec 2006 03:20:37 +0100
-
-dosfstools (2.11-2.1ubuntu2) feisty; urgency=low
-
-  * Fix some integer overflows in check.c and fat.c which resulted in 
-    large files (close to 32-bit limit) being errorenously truncated
-    to 0 bytes. Closes LP#62831.
-
- -- Stefan Potyra <sistpoty@ubuntu.com>  Tue, 19 Dec 2006 02:21:45 +0100
-
-dosfstools (2.11-2.1ubuntu1) dapper; urgency=low
-
-  * Applied patch from Fred (launchpad bug 17960) to correct issue where
-    dosfsck cannot truncate a file if another file shares its clusters.
-
- -- Daniel Silverstone <daniel.silverstone@ubuntu.com>  Mon,  3 Apr 2006 19:05:57 +0100
-
 dosfstools (2.11-2.1) unstable; urgency=low
 
   * Non-maintainer upload.
@@ -65,7 +55,7 @@ dosfstools (2.11-2) unstable; urgency=low
     Closes: #300126, #301254.
   * #302517 was indeed the same as #294177, and fix is the same (use __u8) as
     in 2.11-1. Closes: #302517.
-  
+
  -- Roman Hodek <roman@hodek.net>  Sun,  3 Apr 2005 13:56:55 +0200
 
 dosfstools (2.11-1) unstable; urgency=low
@@ -84,7 +74,7 @@ dosfstools (2.10-1) unstable; urgency=low
        suggested by Michal)
   * recompilation removed errno@GLIBC_2.0 symbol; Closes: #168540
     (probably already 2.9-1 did)
-  
+
  -- Roman Hodek <roman@hodek.net>  Mon, 22 Sep 2003 22:15:32 +0200
 
 dosfstools (2.9-1) unstable; urgency=low
@@ -111,7 +101,7 @@ dosfstools (2.9-1) unstable; urgency=low
   * debian/control: Added build dependency on debhelper (Closes: #168388)
   * debian/control: spelling fix (Closes: #124564)
   * debian/control: metion names of tools in description (Closes: #186047)
-  
+
  -- Roman Hodek <roman@hodek.net>  Thu, 15 May 2003 20:54:04 +0200
 
 dosfstools (2.8-1) unstable; urgency=low
@@ -188,7 +178,7 @@ dosfstools (2.0-1) unstable; urgency=low
   * Fixed harmless warnings in mkdosfs.c and fat.c.
   * mkdosfs.c: Return type of getopt() must be stored in an int, not in a
     char. (Showed up on powerpc, where chars are default unsigned.)
-  
+
  -- Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>  Fri, 30 Apr 1999 14:37:37 +0200
 
 dosfstools (1.0-16) unstable; urgency=low
@@ -245,21 +235,21 @@ dosfstools (1.0-14) frozen unstable; urgency=medium
 
  -- Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>  Thu, 30 Apr 1998 10:00:16 +0200
 
-dosfstools (1.0-13) stable; urgency=low, closes=17389
+dosfstools (1.0-13) stable; urgency=low
 
   * Fixed nasty bug that caused every file with a name like xxxxxxxx.xxx
     to be treated as bad name that needed to be fixed. (closes: Bug#17389)
 
  -- Martin Schulze <joey@finlandia.infodrom.north.de>  Thu, 26 Feb 1998 01:14:40 +0100
 
-dosfstools (1.0-12) stable; urgency=low, closes=15037
+dosfstools (1.0-12) stable; urgency=low
 
   * Moved executables and their links into /sbin (Bug#15037)
   * Corrected Standards-Version to 2.3.0.1
-  
+
  -- Martin Schulze <joey@finlandia.infodrom.north.de>  Fri, 9 Jan 1998 21:49:48 +0100
 
-dosfstools (1.0-11) stable; urgency=low, closes=16493 16494 16490 16491
+dosfstools (1.0-11) stable; urgency=low
 
   * Applied patches to source files from Juan Cespedes which got lost in
     the last upload (Bug#16493, Bug#16494, Bug#16490)
@@ -309,7 +299,7 @@ dosfstools (1.0-8) stable; urgency=low
 dosfstools (1.0-7) stable; urgency=low
 
   * Minor fixes
-  
+
   * Converted to Standards-Version 2.1.1.2
 
  -- Martin Schulze <joey@debian.org>  Sat, 8 Feb 1997 15:03:52 +0100
@@ -365,5 +355,3 @@ Wed Jul  3 00:57:23 1996  Martin Schulze  <joey@finlandia.infodrom.north.de>
 	* mkdosfs.8: corrected some bold/inverse text phrases
 
 	* mkdosfs.c: initialized a variable to stop gcc from moaning
-
-
