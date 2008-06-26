@@ -1,26 +1,88 @@
-This is the Debian Linux prepackaged version of the mkdosfs the creator
-for MS-DOS filesystems either on harddisks or on floppies.
+Author: Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+Download: http://ftp.uni-erlangen.de/pub/Linux/LOCAL/dosfstools/
 
-This package was put together by Martin Schulze <joey@infodrom.north.de>,
-from sources obtained from:
- sunsite.unc.edu:/pub/Linux/system/filesystems/dosfs/mkdosfs-ygg-0.3b.lsm
- sunsite.unc.edu:/pub/Linux/system/filesystems/dosfs/mkdosfs-ygg-0.3b.tar.gz
- sunsite.unc.edu:/pub/Linux/system/filesystems/dosfs/dosfsck.1.tar.z
+Files: *
+Copyright: (C) 1999-2005 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+License: GPL-2+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
 
-Mkdosfs is copyrighted by Dave Hudson <dave@humbug.demon.co.uk>, and was
-later maintained and improved by H. Peter Anvin <hpa@yggdrasil.com>.
-Dave has put the whole package under the GPL.
+Files: dosfsck/*
+Copyright:
+ (C) 1999-2005 Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
+ (C) 1999-2005 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+License: GPL-2+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
 
-Dosfsck is copyrighted by Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
-and Roman Hodek. We both together put the package under the GPL.
+Files: mkdosfs/*
+Copyright:
+ (C) 1993-1994 David Hudson <dave@humbug.demon.co.uk>
+ (C) 1991 Linus Torvalds <torvalds@klaava.helsinki.fi>
+ (C) 1992-1993 Remy Card <card@masi.ibp.fr>
+ (C) 1999-2005 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+License: GPL-2+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
 
-The FAT32, LFN, and Atari format additions are copyrighted by Roman
-Hodek <Roman.Hodek@informatik.uni-erlangen.de> and are under the GPL, too.
-
-Both tools (mkdosfs and dosfsck) have been unmaintained since some
-time, so I also took them over as upstream maintainer. The merged
-package is named dosfstools-2.0, and its home site is now
-  ftp.uni-erlangen.de:/pub/Linux/LOCAL/dosfstools
-
-On Debian GNU/Linux systems, the complete text of the GNU General Public
-License can be found in `/usr/share/common-licenses/GPL'.
+Files: debian/*
+Copyright: (C) 2008 Daniel Baumann <daniel@debian.org>
+License: GPL-2+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.

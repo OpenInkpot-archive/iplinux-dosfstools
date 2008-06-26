@@ -1,0 +1,7 @@
+01-argfix.dpatch
+02-fortify.dpatch
+03-label.dpatch
+04-unaligned-memory.dpatch
+05-o-excl.dpatch
+06-determine-sector-size.dpatch
+99-conglomeration.dpatch
