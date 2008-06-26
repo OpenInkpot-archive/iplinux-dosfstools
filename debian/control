@@ -1,7 +1,7 @@
 Source: dosfstools
 Section: otherosfs
 Priority: optional
-Maintainer: Roman Hodek <roman@hodek.net>
+Maintainer: Daniel Baumann <daniel@debian.org>
 Build-Depends: debhelper
 Standards-Version: 3.0.1
 
