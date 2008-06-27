@@ -11,4 +11,5 @@
 11-memory-efficiency.dpatch
 12-zero-slot.dpatch
 13-getopt.dpatch
+14-bootcode.dpatch
 99-conglomeration.dpatch
