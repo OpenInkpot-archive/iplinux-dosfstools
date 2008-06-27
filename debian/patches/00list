@@ -9,4 +9,5 @@
 09-manpage-fat32.dpatch
 10-manpage-synopsis.dpatch
 11-memory-efficiency.dpatch
+12-zero-slot.dpatch
 99-conglomeration.dpatch
