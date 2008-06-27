@@ -5,9 +5,9 @@
 
 @DPATCH@
 
-diff -Naurp dosfstools-2.11.orig/mkdosfs/mkdosfs.8 dosfstools-2.11/mkdosfs/mkdosfs.8
---- dosfstools-2.11.orig/mkdosfs/mkdosfs.8	2004-02-25 19:36:07.000000000 +0000
-+++ dosfstools-2.11/mkdosfs/mkdosfs.8	2008-06-26 11:51:30.000000000 +0000
+diff -Naurp dosfstools.orig/mkdosfs/mkdosfs.8 dosfstools/mkdosfs/mkdosfs.8
+--- dosfstools.orig/mkdosfs/mkdosfs.8	2008-06-27 05:59:58.000000000 +0200
++++ dosfstools/mkdosfs/mkdosfs.8	2008-06-27 06:05:38.000000000 +0200
 @@ -79,19 +79,19 @@ is the special file corresponding to the
  .I block-count
  is the number of blocks on the device.  If omitted,
@@ -98,3 +98,12 @@ diff -Naurp dosfstools-2.11.orig/mkdosfs/mkdosfs.8 dosfstools-2.11/mkdosfs/mkdos
  think at first glance for various reasons and has been discussed a lot
  already.
  .B mkdosfs
+@@ -200,7 +200,7 @@ simply will not support it ;)
+ Dave Hudson - <dave@humbug.demon.co.uk>; modified by Peter Anvin
+ <hpa@yggdrasil.com>. Fixes and additions by Roman Hodek
+ <roman@hodek.net> for Debian/GNU Linux.
+-.SH ACKNOWLEDGEMENTS
++.SH ACKNOWLEDGMENTS
+ .B mkdosfs
+ is based on code from
+ .BR mke2fs
