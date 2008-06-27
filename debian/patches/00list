@@ -7,4 +7,5 @@
 07-manpage-spelling.dpatch
 08-manpage-drop.dpatch
 09-manpage-fat32.dpatch
+10-manpage-synopsis.dpatch
 99-conglomeration.dpatch
