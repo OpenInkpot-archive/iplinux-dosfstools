@@ -4,4 +4,5 @@
 04-unaligned-memory.dpatch
 05-o-excl.dpatch
 06-determine-sector-size.dpatch
+07-manpage-spelling.dpatch
 99-conglomeration.dpatch
