@@ -12,4 +12,5 @@
 12-zero-slot.dpatch
 13-getopt.dpatch
 14-bootcode.dpatch
+15-manpage-files.dpatch
 99-conglomeration.dpatch
