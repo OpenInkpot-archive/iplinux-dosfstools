@@ -110,28 +110,28 @@ diff -Naurp dosfstools-2.11.orig/dosfsck/check.c dosfstools-2.11/dosfsck/check.c
      }
      return 0;
  }
-diff -Naurp dosfstools-2.11.orig/dosfsck/fat.c dosfstools-2.11/dosfsck/fat.c
---- dosfstools-2.11.orig/dosfsck/fat.c	2003-06-14 20:03:20.000000000 +0000
-+++ dosfstools-2.11/dosfsck/fat.c	2008-06-26 11:51:30.000000000 +0000
+diff -Naurp dosfstools.orig/dosfsck/fat.c dosfstools/dosfsck/fat.c
+--- dosfstools.orig/dosfsck/fat.c	2008-06-27 05:49:45.000000000 +0000
++++ dosfstools/dosfsck/fat.c	2008-06-27 05:53:48.000000000 +0000
 @@ -54,7 +54,7 @@ void read_fat(DOS_FS *fs)
-     void *first,*second,*use;
+     void *first,*second = NULL;
      int first_ok,second_ok;
  
 -    eff_size = ((fs->clusters+2)*fs->fat_bits+7)/8;
 +    eff_size = ((fs->clusters+2ULL)*fs->fat_bits+7)/8ULL;
      first = alloc(eff_size);
      fs_read(fs->fat_start,eff_size,first);
-     use = first;
-@@ -97,7 +97,7 @@ void read_fat(DOS_FS *fs)
- 	    exit(1);
- 	}
+     if (fs->nfats > 1) {
+@@ -101,7 +101,7 @@ void read_fat(DOS_FS *fs)
+     if (second) {
+           free(second);
      }
 -    fs->fat = qalloc(&mem_queue,sizeof(FAT_ENTRY)*(fs->clusters+2));
 +    fs->fat = qalloc(&mem_queue,sizeof(FAT_ENTRY)*(fs->clusters+2ULL));
-     for (i = 2; i < fs->clusters+2; i++) get_fat(&fs->fat[i],use,i,fs);
+     for (i = 2; i < fs->clusters+2; i++) get_fat(&fs->fat[i],first,i,fs);
      for (i = 2; i < fs->clusters+2; i++)
  	if (fs->fat[i].value >= fs->clusters+2 &&
-@@ -177,7 +177,7 @@ unsigned long next_cluster(DOS_FS *fs,un
+@@ -179,7 +179,7 @@ unsigned long next_cluster(DOS_FS *fs,un
  
  loff_t cluster_start(DOS_FS *fs,unsigned long cluster)
  {
@@ -140,7 +140,7 @@ diff -Naurp dosfstools-2.11.orig/dosfsck/fat.c dosfstools-2.11/dosfsck/fat.c
  }
  
  
-@@ -225,8 +225,8 @@ void reclaim_free(DOS_FS *fs)
+@@ -227,8 +227,8 @@ void reclaim_free(DOS_FS *fs)
  	    reclaimed++;
  	}
      if (reclaimed)
@@ -151,7 +151,7 @@ diff -Naurp dosfstools-2.11.orig/dosfsck/fat.c dosfstools-2.11/dosfsck/fat.c
  }
  
  
-@@ -305,8 +305,8 @@ void reclaim_file(DOS_FS *fs)
+@@ -307,8 +307,8 @@ void reclaim_file(DOS_FS *fs)
  	    fs_write(offset,sizeof(DIR_ENT),&de);
  	}
      if (reclaimed)
