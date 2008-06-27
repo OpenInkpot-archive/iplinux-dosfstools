@@ -1,3 +1,29 @@
+dosfstools (2.11-5) unstable; urgency=medium
+
+  * Adding patch to mention fsckNNNN.rec files in dosfsck manpage
+    (Closes: #444596).
+  * Adding patch from Sam Bingner <sam@bingner.com> to add option for using a
+    bootcode template (Closes: #303442).
+  * Adding patch from Adonikam Virgo <adonikam@virgonet.org> to fix backup
+    sector getopt (Closes: #232387, #479794).
+  * Adding patch from Karl Tomlinson <karlt@karlt.net> to fix segfaults with
+    zero slots in lfn (Closes: #152550, #353198, #356377, #401798).
+  * Rediffing 99-conglomeration.dpatch.
+  * Adding patch from Eero Tamminen <eero.tamminen@nokia.com> to improve memory
+    efficiencey when checking filesystems.
+  * Adding patch to list alternative binary names in manpage synopsis
+    (Closes: #284983).
+  * Adding patch to not deny FAT32 auto-selection in mkdosfs manpage
+    (Closes: #414183).
+  * Adding patch to not use confusing 'drop' in dosfsck manpage where 'delete'
+    in dosfsck manpage where 'delete' is meant (Closes: #134100).
+  * Listing alternative binary names in long-description (Closes: #434381).
+  * Updating manpage spelling patch to also cover wrong acknowledge header
+    (Closes: #306659).
+  * Breaking out manpage typos patch.
+
+ -- Daniel Baumann <daniel@debian.org>  Fri, 27 Jun 2008 09:03:00 +0200
+
 dosfstools (2.11-4) unstable; urgency=low
 
   * Redone debian packaging from scratch.
