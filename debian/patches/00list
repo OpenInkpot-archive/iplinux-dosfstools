@@ -6,4 +6,5 @@
 06-determine-sector-size.dpatch
 07-manpage-spelling.dpatch
 08-manpage-drop.dpatch
+09-manpage-fat32.dpatch
 99-conglomeration.dpatch
