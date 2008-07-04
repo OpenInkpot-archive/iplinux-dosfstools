@@ -1,3 +1,10 @@
+dosfstools (2.11-6) unstable; urgency=high
+
+  * Temporarily disabling bootcode.dpatch since it breaks syslinux,
+    thanks to Joey Hess <joeyh@debian.org> (Closes: #489292).
+
+ -- Daniel Baumann <daniel@debian.org>  Fri,  4 Jul 2008 20:28:00 +0200
+
 dosfstools (2.11-5) unstable; urgency=medium
 
   * Adding patch to mention fsckNNNN.rec files in dosfsck manpage
