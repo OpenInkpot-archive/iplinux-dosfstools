@@ -13,7 +13,7 @@ clean: unpatch
 	dh_clean
 
 build: build-stamp
-build-stamp: patch
+build-stamp: patch-stamp
 	dh_testdir
 
 	$(MAKE) DEBUGFLAGS=-g OPTFLAGS="-O2 -fomit-frame-pointer $(shell getconf LFS_CFLAGS)"
