@@ -42,7 +42,7 @@ binary-arch: build install
 	dh_installdocs
 	dh_installman
 	dh_lintian
-	dh_strip
+	dh_strip --dbg-package=dosfstools-dbg
 	dh_compress
 	dh_fixperms
 	dh_installdeb
