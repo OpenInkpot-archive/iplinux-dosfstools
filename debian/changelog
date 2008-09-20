@@ -1,3 +1,12 @@
+dosfstools (2.11-7) unstable; urgency=low
+
+  * Adding manpage for dosfslabel, thanks to Francois Wendling
+    <frwendling@free.fr> (Closes: #496760).
+  * Updating vcs fields in control file.
+  * Using patch-stamp rather than patch in rules file.
+
+ -- Daniel Baumann <daniel@debian.org>  Sat, 20 Sep 2008 21:48:00 +0200
+
 dosfstools (2.11-6) unstable; urgency=high
 
   * Temporarily disabling bootcode.dpatch since it breaks syslinux,
