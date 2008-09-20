@@ -1,3 +1,9 @@
+dosfstools (2.11-8) unstable; urgency=low
+
+  * Adding debug package.
+
+ -- Daniel Baumann <daniel@debian.org>  Sat, 20 Sep 2008 21:52:00 +0200
+
 dosfstools (2.11-7) unstable; urgency=low
 
   * Adding manpage for dosfslabel, thanks to Francois Wendling
