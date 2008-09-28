@@ -1,3 +1,16 @@
+dosfstools (3.0.0-1) unstable; urgency=low
+
+  * Merging upstream version 3.0.0.
+  * Updating homepage field in control.
+  * Updating upstream information in copyright file.
+  * Removing now useless lintian override.
+  * Removing now useless manpage.
+  * Removing now useless patches.
+  * Removing now useless docs.
+  * Updating rules to for new upstream.
+
+ -- Daniel Baumann <daniel@debian.org>  Sun, 28 Sep 2008 11:56:00 +0200
+
 dosfstools (2.11-8) unstable; urgency=low
 
   * Adding debug package.
