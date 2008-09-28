@@ -1,13 +1,29 @@
-/*
-   Filename:     mkdosfs.c
-   Version:      0.3b (Yggdrasil)
-   Author:       Dave Hudson
-   Started:      24th August 1994
-   Last Updated: 7th May 1998
-   Updated by:   Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
-   Target O/S:   Linux (2.x)
+/* mkdosfs.c - utility to create FAT/MS-DOS filesystems
 
-   Description: Utility to allow an MS-DOS filesystem to be created
+   Copyright (C) 1991 Linus Torvalds <torvalds@klaava.helsinki.fi>
+   Copyright (C) 1992-1993 Remy Card <card@masi.ibp.fr>
+   Copyright (C) 1993-1994 David Hudson <dave@humbug.demon.co.uk>
+   Copyright (C) 1998 H. Peter Anvin <hpa@zytor.com>
+   Copyright (C) 1998-2005 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
+
+/* Description: Utility to allow an MS-DOS filesystem to be created
    under Linux.  A lot of the basic structure of this program has been
    borrowed from Remy Card's "mke2fs" code.
 
@@ -23,35 +39,15 @@
    - Atari format support
    - New options -A, -S, -C
    - Support for filesystems > 2GB
-   - FAT32 support
-   
-   Copying:     Copyright 1993, 1994 David Hudson (dave@humbug.demon.co.uk)
-
-   Portions copyright 1992, 1993 Remy Card (card@masi.ibp.fr)
-   and 1991 Linus Torvalds (torvalds@klaava.helsinki.fi)
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
-
+   - FAT32 support */
 
 /* Include the header files */
 
-#include "../version.h"
+#include "version.h"
 
 #include <fcntl.h>
 #include <linux/hdreg.h>
-#include <linux/fs.h>
+#include <sys/mount.h>
 #include <linux/fd.h>
 #include <endian.h>
 #include <mntent.h>
@@ -66,12 +62,7 @@
 #include <time.h>
 #include <errno.h>
 
-#include <linux/version.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)
-# define __KERNEL__
 # include <asm/types.h>
-# undef __KERNEL__
-#endif
 
 #if __BYTE_ORDER == __BIG_ENDIAN
 
@@ -90,7 +81,7 @@
 #define CT_LE_W(v) CF_LE_W(v)
 #define CT_LE_L(v) CF_LE_L(v)
 #endif /* defined(__le16_to_cpu) */
-    
+
 #else
 
 #define CF_LE_W(v) (v)
@@ -609,7 +600,7 @@ establish_params (int device_num,int size)
 	    case 720:
 	      param.sect = 9 ;
 	      param.head = 2;
-	      break; 
+	      break;
 	    case 1440:
 	      param.sect = 9;
 	      param.head = 2;
@@ -632,7 +623,7 @@ establish_params (int device_num,int size)
 	      param.head = 64;
 	      break;
 	    }
-	  
+
 	}
       else 	/* is a floppy diskette */
 	{
@@ -663,7 +654,7 @@ establish_params (int device_num,int size)
 	  bs.dir_entries[0] = (char) 224;
 	  bs.dir_entries[1] = (char) 0;
 	  break;
-	  
+
 	case 5760:		/* 3.5", 2, 36, 80 - 2880K */
 	  bs.media = (char) 0xf0;
 	  bs.cluster_size = (char) 2;
@@ -688,7 +679,7 @@ establish_params (int device_num,int size)
     }
   else if ((device_num & 0xff00) == 0x0700) /* This is a loop device */
     {
-      if (ioctl (dev, BLKGETSIZE, &loop_size)) 
+      if (ioctl (dev, BLKGETSIZE, &loop_size))
 	die ("unable to get loop device size");
 
       switch (loop_size)  /* Assuming the loop device -> floppy later */
@@ -719,7 +710,7 @@ establish_params (int device_num,int size)
 	  bs.dir_entries[0] = (char) 224;
 	  bs.dir_entries[1] = (char) 0;
 	  break;
-	  
+
 	case 5760:		/* 3.5", 2, 36, 80 - 2880K */
 	  bs.secs_track = CF_LE_W(36);
 	  bs.heads = CF_LE_W(2);
@@ -751,8 +742,8 @@ establish_params (int device_num,int size)
     {
       /* Can we get the drive geometry? (Note I'm not too sure about */
       /* whether to use HDIO_GETGEO or HDIO_REQ) */
-      if (ioctl (dev, HDIO_GETGEO, &geometry)) {
-	printf ("unable to get drive geometry, using default 255/63");
+      if (ioctl (dev, HDIO_GETGEO, &geometry) || geometry.sectors == 0 || geometry.heads == 0) {
+	printf ("unable to get drive geometry, using default 255/63\n");
         bs.secs_track = CT_LE_W(63);
         bs.heads = CT_LE_W(255);
       }
@@ -769,18 +760,19 @@ establish_params (int device_num,int size)
 	  size_fat = 32;
       }
       if (size_fat == 32) {
-	  /* For FAT32, try to do the same as M$'s format command:
-	   * fs size < 256M: 0.5k clusters
-	   * fs size <   8G: 4k clusters
-	   * fs size <  16G: 8k clusters
-	   * fs size >= 16G: 16k clusters
+	  /* For FAT32, try to do the same as M$'s format command
+	   * (see http://www.win.tue.nl/~aeb/linux/fs/fat/fatgen103.pdf p. 20):
+	   * fs size <= 260M: 0.5k clusters
+	   * fs size <=   8G: 4k clusters
+	   * fs size <=  16G: 8k clusters
+	   * fs size >   16G: 16k clusters
 	   */
 	  unsigned long sz_mb =
 	      (blocks+(1<<(20-BLOCK_SIZE_BITS))-1) >> (20-BLOCK_SIZE_BITS);
-	  bs.cluster_size = sz_mb >= 16*1024 ? 32 :
-			    sz_mb >=  8*1024 ? 16 :
-			    sz_mb >=     256 ?  8 :
-					        1;
+	  bs.cluster_size = sz_mb > 16*1024 ? 32 :
+			    sz_mb >  8*1024 ? 16 :
+			    sz_mb >     260 ?  8 :
+					       1;
       }
       else {
 	  /* FAT12 and FAT16: start at 4 sectors per cluster */
@@ -800,12 +792,12 @@ setup_tables (void)
   unsigned fatdata;			/* Sectors for FATs + data area */
   struct tm *ctime;
   struct msdos_volume_info *vi = (size_fat == 32 ? &bs.fat32.vi : &bs.oldfat.vi);
-  
+
   if (atari_format)
       /* On Atari, the first few bytes of the boot sector are assigned
        * differently: The jump code is only 2 bytes (and m68k machine code
        * :-), then 6 bytes filler (ignored), then 3 byte serial number. */
-    strncpy( bs.system_id-1, "mkdosf", 6 );
+    memcpy( bs.system_id-1, "mkdosf", 6 );
   else
     strcpy (bs.system_id, "mkdosfs");
   if (sectors_per_cluster)
@@ -840,7 +832,7 @@ setup_tables (void)
 
   if (!atari_format) {
     memcpy(vi->volume_label, volume_name, 11);
-  
+
     memcpy(bs.boot_jump, dummy_boot_jump, 3);
     /* Patch in the correct offset to the boot code */
     bs.boot_jump[1] = ((size_fat == 32 ?
@@ -896,7 +888,7 @@ setup_tables (void)
     unsigned maxclust12, maxclust16, maxclust32;
     unsigned clust12, clust16, clust32;
     int maxclustsize;
-    
+
     fatdata = num_sectors - cdiv (root_dir_entries * 32, sector_size) -
 	      reserved_sectors;
 
@@ -1036,20 +1028,22 @@ setup_tables (void)
 	break;
 
       case 32:
+	if (clust32 < MIN_CLUST_32)
+	  fprintf(stderr, "WARNING: Not enough clusters for a 32 bit FAT!\n");
 	cluster_count = clust32;
 	fat_length = fatlength32;
 	bs.fat_length = CT_LE_W(0);
 	bs.fat32.fat32_length = CT_LE_L(fatlength32);
 	memcpy(vi->fs_type, MSDOS_FAT32_SIGN, 8);
 	break;
-	
+
       default:
 	die("FAT not 12, 16 or 32 bits");
     }
   }
   else {
     unsigned clusters, maxclust;
-      
+
     /* GEMDOS always uses a 12 bit FAT on floppies, and always a 16 bit FAT on
      * hard disks. So use 12 bit if the size of the file system suggests that
      * this fs is for a floppy disk, if the user hasn't explicitly requested a
@@ -1095,7 +1089,7 @@ setup_tables (void)
       if (verbose >= 2)
 	printf( "ss=%d: #clu=%d, fat_len=%d, maxclu=%d\n",
 		sector_size, clusters, fat_length, maxclust );
-      
+
       /* last 10 cluster numbers are special (except FAT32: 4 high bits rsvd);
        * first two numbers are reserved */
       if (maxclust <= (size_fat == 32 ? MAX_CLUST_32 : (1<<size_fat)-0x10) &&
@@ -1112,7 +1106,7 @@ setup_tables (void)
       num_sectors >>= 1;
       sector_size <<= 1;
     } while( sector_size <= GEMDOS_MAX_SECTOR_SIZE );
-    
+
     if (sector_size > GEMDOS_MAX_SECTOR_SIZE)
       die( "Would need a sector size > 16k, which GEMDOS can't work with");
 
@@ -1152,7 +1146,7 @@ setup_tables (void)
       bs.fat32.backup_boot = CT_LE_W(backup_boot);
       memset( &bs.fat32.reserved2, 0, sizeof(bs.fat32.reserved2) );
     }
-  
+
   if (atari_format) {
       /* Just some consistency checks */
       if (num_sectors >= GEMDOS_MAX_SECTORS)
@@ -1186,7 +1180,7 @@ setup_tables (void)
 	die ("Attempting to create a too large file system");
     }
 
-  
+
   /* The two following vars are in hard sectors, i.e. 512 byte sectors! */
   start_data_sector = (reserved_sectors + nr_fats * fat_length) *
 		      (sector_size/HARD_SECTOR_SIZE);
@@ -1200,7 +1194,7 @@ setup_tables (void)
     {
       printf("%s has %d head%s and %d sector%s per track,\n",
 	     device_name, CF_LE_W(bs.heads), (CF_LE_W(bs.heads) != 1) ? "s" : "",
-	     CF_LE_W(bs.secs_track), (CF_LE_W(bs.secs_track) != 1) ? "s" : ""); 
+	     CF_LE_W(bs.secs_track), (CF_LE_W(bs.secs_track) != 1) ? "s" : "");
       printf("logical sector size is %d,\n",sector_size);
       printf("using 0x%02x media descriptor, with %d sectors;\n",
 	     (int) (bs.media), num_sectors);
@@ -1272,7 +1266,7 @@ setup_tables (void)
   if (size_fat == 32) {
     /* For FAT32, create an info sector */
     struct fat32_fsinfo *info;
-    
+
     if (!(info_sector = malloc( sector_size )))
       die("Out of memory");
     memset(info_sector, 0, sector_size);
@@ -1294,7 +1288,7 @@ setup_tables (void)
     /* Info sector also must have boot sign */
     *(__u16 *)(info_sector + 0x1fe) = CT_LE_W(BOOT_SIGN);
   }
-  
+
   if (!(blank_sector = malloc( sector_size )))
       die( "Out of memory" );
   memset(blank_sector, 0, sector_size);
@@ -1424,7 +1418,8 @@ main (int argc, char **argv)
   int i = 0, pos, ch;
   int create = 0;
   unsigned long long cblocks;
-  
+  int min_sector_size;
+
   if (argc && *argv) {		/* What's the program name? */
     char *p;
     program_name = *argv;
@@ -1435,11 +1430,11 @@ main (int argc, char **argv)
   time(&create_time);
   volume_id = (long)create_time;	/* Default volume ID = creation time */
   check_atari();
-  
+
   printf ("%s " VERSION " (" VERSION_DATE ")\n",
 	   program_name);
 
-  while ((c = getopt (argc, argv, "AbcCf:F:Ii:l:m:n:r:R:s:S:h:v")) != EOF)
+  while ((c = getopt (argc, argv, "Ab:cCf:F:Ii:l:m:n:r:R:s:S:h:v")) != EOF)
     /* Scan the command line for options */
     switch (c)
       {
@@ -1455,7 +1450,7 @@ main (int argc, char **argv)
 	    usage ();
 	  }
 	break;
-	
+
       case 'c':		/* c : Check FS as we build it */
 	check = TRUE;
 	break;
@@ -1567,10 +1562,10 @@ main (int argc, char **argv)
 	    while( i < BOOTCODE_SIZE-1 )
 		dummy_boot_code[i++] = '\0';
 	    dummy_boot_code[BOOTCODE_SIZE-1] = '\0'; /* Just in case */
-	    
+
 	    if ( ch != EOF )
 	      printf ("Warning: message too long; truncated\n");
-	    
+
 	    if ( msgfile != stdin )
 	      fclose(msgfile);
 	  }
@@ -1597,7 +1592,7 @@ main (int argc, char **argv)
 	    usage ();
 	  }
 	break;
-	
+
       case 's':		/* s : Sectors per cluster */
 	sectors_per_cluster = (int) strtol (optarg, &tmp, 0);
 	if (*tmp || (sectors_per_cluster != 1 && sectors_per_cluster != 2
@@ -1626,7 +1621,7 @@ main (int argc, char **argv)
       case 'v':		/* v : Verbose execution */
 	++verbose;
 	break;
-	
+
       default:
 	printf( "Unknown option: %c\n", c );
 	usage ();
@@ -1634,6 +1629,12 @@ main (int argc, char **argv)
   if (optind < argc)
     {
       device_name = argv[optind];  /* Determine the number of blocks in the FS */
+
+      if (!device_name) {
+	  printf("No device specified.\n");
+	  usage();
+      }
+
       if (!create)
          cblocks = count_blocks (device_name); /*  Have a look and see! */
     }
@@ -1669,7 +1670,7 @@ main (int argc, char **argv)
 
   if (!create) {
     check_mount (device_name);	/* Is the device already mounted? */
-    dev = open (device_name, O_RDWR);	/* Is it a suitable device to build the FS on? */
+    dev = open (device_name, O_EXCL|O_RDWR);	/* Is it a suitable device to build the FS on? */
     if (dev < 0)
       die ("unable to open %s");
   }
@@ -1677,7 +1678,7 @@ main (int argc, char **argv)
       off_t offset = blocks*BLOCK_SIZE - 1;
       char null = 0;
       /* create the file */
-      dev = open( device_name, O_RDWR|O_CREAT|O_TRUNC, 0666 );
+      dev = open( device_name, O_EXCL|O_RDWR|O_CREAT|O_TRUNC, 0666 );
       if (dev < 0)
 	die("unable to create %s");
       /* seek to the intended end-1, and write one byte. this creates a
@@ -1689,7 +1690,7 @@ main (int argc, char **argv)
       if (llseek( dev, 0, SEEK_SET ) != 0)
 	die( "seek failed" );
   }
-  
+
   if (fstat (dev, &statbuf) < 0)
     die ("unable to stat %s");
   if (!S_ISBLK (statbuf.st_mode)) {
@@ -1712,7 +1713,30 @@ main (int argc, char **argv)
 	)
       die ("Will not try to make filesystem on full-disk device '%s' (use -I if wanted)");
 
-  establish_params (statbuf.st_rdev,statbuf.st_size);	
+  if (sector_size_set)
+    {
+      if (ioctl(dev, BLKSSZGET, &min_sector_size) >= 0)
+          if (sector_size < min_sector_size)
+            {
+	      sector_size = min_sector_size;
+              fprintf(stderr, "Warning: sector size was set to %d (minimal for this device)\n", sector_size);
+            }
+    }
+  else
+    {
+      if (ioctl(dev, BLKSSZGET, &min_sector_size) >= 0)
+        {
+	  sector_size = min_sector_size;
+	  sector_size_set = 1;
+        }
+    }
+
+  if (sector_size > 4096)
+    fprintf(stderr,
+            "Warning: sector size is set to %d > 4096, such filesystem will not propably mount\n",
+            sector_size);
+
+  establish_params (statbuf.st_rdev,statbuf.st_size);
                                 /* Establish the media parameters */
 
   setup_tables ();		/* Establish the file system tables */

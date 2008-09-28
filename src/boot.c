@@ -1,6 +1,24 @@
-/* boot.c  -  Read and analyze ia PC/MS-DOS boot sector */
+/* boot.c - Read and analyze ia PC/MS-DOS boot sector
 
-/* Written 1993 by Werner Almesberger */
+   Copyright (C) 1993 Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
+   Copyright (C) 1998 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
 
 /* FAT32, VFAT, Atari format support, and various fixes additions May 1998
  * by Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de> */
@@ -8,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <stdlib.h>
 
 #include "common.h"
 #include "dosfsck.h"
@@ -40,7 +59,7 @@ static struct {
     ({						\
 	unsigned short __v;			\
 	memcpy( &__v, &f, sizeof(__v) );	\
-	CF_LE_W( *(unsigned short *)&f );	\
+	CF_LE_W( *(unsigned short *)&__v );	\
     })
 #else
 #define GET_UNALIGNED_W(f) CF_LE_W( *(unsigned short *)&f )
@@ -61,7 +80,7 @@ static char *get_media_descr( unsigned char media )
 static void dump_boot(DOS_FS *fs,struct boot_sector *b,unsigned lss)
 {
     unsigned short sectors;
-    
+
     printf("Boot sector contents:\n");
     if (!atari_format) {
 	char id[9];
@@ -147,7 +166,7 @@ static void check_backup_boot(DOS_FS *fs, struct boot_sector *b, int lss)
 	}
 	else return;
     }
-    
+
     fs_read(fs->backupboot_start,sizeof(b2),&b2);
     if (memcmp(b,&b2,sizeof(b2)) != 0) {
 	/* there are any differences */
@@ -232,10 +251,10 @@ static void read_fsinfo(DOS_FS *fs, struct boot_sector *b,int lss)
 	}
 	else return;
     }
-    
+
     fs->fsinfo_start = CF_LE_W(b->info_sector)*lss;
     fs_read(fs->fsinfo_start,sizeof(i),&i);
-    
+
     if (i.magic != CT_LE_L(0x41615252) ||
 	i.signature != CT_LE_L(0x61417272) ||
 	i.boot_sign != CT_LE_W(0xaa55)) {
@@ -321,7 +340,7 @@ void read_boot(DOS_FS *fs)
 
 	fs->backupboot_start = CF_LE_W(b.backup_boot)*logical_sector_size;
 	check_backup_boot(fs,&b,logical_sector_size);
-	
+
 	read_fsinfo(fs,&b,logical_sector_size);
     }
     else if (!atari_format) {
@@ -348,6 +367,21 @@ void read_boot(DOS_FS *fs)
     /* On FAT32, the high 4 bits of a FAT entry are reserved */
     fs->eff_fat_bits = (fs->fat_bits == 32) ? 28 : fs->fat_bits;
     fs->fat_size = fat_length*logical_sector_size;
+
+    fs->label = calloc(12, sizeof (__u8));
+    if (fs->fat_bits == 12 || fs->fat_bits == 16) {
+        struct boot_sector_16 *b16 = (struct boot_sector_16 *)&b;
+        if (b16->extended_sig == 0x29)
+            memmove(fs->label, b16->label, 11);
+        else
+            fs->label = NULL;
+    } else if (fs->fat_bits == 32) {
+        if (b.extended_sig == 0x29)
+            memmove(fs->label, &b.label, 11);
+        else
+            fs->label = NULL;
+    }
+
     if (fs->clusters > ((unsigned long long)fs->fat_size*8/fs->fat_bits)-2)
 	die("File system has %d clusters but only space for %d FAT entries.",
 	  fs->clusters,((unsigned long long)fs->fat_size*8/fs->fat_bits)-2);
@@ -359,10 +393,42 @@ void read_boot(DOS_FS *fs)
     if (logical_sector_size & (SECTOR_SIZE-1))
 	die("Logical sector size (%d bytes) is not a multiple of the physical "
 	  "sector size.",logical_sector_size);
+#if 0 /* linux kernel doesn't check that either */
     /* ++roman: On Atari, these two fields are often left uninitialized */
     if (!atari_format && (!b.secs_track || !b.heads))
 	die("Invalid disk format in boot sector.");
+#endif
     if (verbose) dump_boot(fs,&b,logical_sector_size);
+}
+
+void write_label(DOS_FS *fs, char *label)
+{
+    struct boot_sector b;
+    struct boot_sector_16 *b16 = (struct boot_sector_16 *)&b;
+    int l = strlen(label);
+
+    while (l < 11)
+        label[l++] = ' ';
+
+    fs_read(0, sizeof(b), &b);
+    if (fs->fat_bits == 12 || fs->fat_bits == 16) {
+        if (b16->extended_sig != 0x29) {
+            b16->extended_sig = 0x29;
+            b16->serial = 0;
+            memmove(b16->fs_type, fs->fat_bits == 12 ?"FAT12   ":"FAT16   ", 8);
+        }
+        memmove(b16->label, label, 11);
+    } else if (fs->fat_bits == 32) {
+        if (b.extended_sig != 0x29) {
+            b.extended_sig = 0x29;
+            b.serial = 0;
+            memmove(b.fs_type, "FAT32   ", 8);
+        }
+        memmove(b.label, label, 11);
+    }
+    fs_write(0, sizeof(b), &b);
+    if (fs->fat_bits == 32 && fs->backupboot_start)
+        fs_write(fs->backupboot_start, sizeof(b), &b);
 }
 
 /* Local Variables: */

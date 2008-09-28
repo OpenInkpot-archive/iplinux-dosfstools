@@ -1,6 +1,24 @@
-/* dosfsck.h  -  Common data structures and global variables */
+/* dosfsck.h  -  Common data structures and global variables
 
-/* Written 1993 by Werner Almesberger */
+   Copyright (C) 1993 Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
+   Copyright (C) 1998 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
 
 /* FAT32, VFAT, Atari format support, and various fixes additions May 1998
  * by Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de> */
@@ -14,13 +32,8 @@
 #define _LINUX_STRING_H_	/* hack to avoid inclusion of <linux/string.h>*/
 #define _LINUX_FS_H             /* hack to avoid inclusion of <linux/fs.h> */
 
-#include <linux/version.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)
-# define __KERNEL__
 # include <asm/types.h>
 # include <asm/byteorder.h>
-# undef __KERNEL__
-#endif
 
 #include <linux/msdos_fs.h>
 
@@ -62,7 +75,7 @@ struct boot_sector {
     __u16	heads;		/* number of heads */
     __u32	hidden;		/* hidden sectors (unused) */
     __u32	total_sect;	/* number of sectors (if sectors == 0) */
-    
+
     /* The following fields are only used by FAT32 */
     __u32	fat32_length;	/* sectors/FAT */
     __u16	flags;		/* bit 8: fat mirroring, low 4: active fat */
@@ -70,10 +83,47 @@ struct boot_sector {
     __u32	root_cluster;	/* first cluster in root directory */
     __u16	info_sector;	/* filesystem info sector */
     __u16	backup_boot;	/* backup boot sector */
-    __u16	reserved2[6];	/* Unused */
+    __u8 	reserved2[12];	/* Unused */
+
+    __u8        drive_number;   /* Logical Drive Number */
+    __u8        reserved3;      /* Unused */
+
+    __u8        extended_sig;   /* Extended Signature (0x29) */
+    __u32       serial;         /* Serial number */
+    __u8        label[11];      /* FS label */
+    __u8        fs_type[8];     /* FS Type */
 
     /* fill up to 512 bytes */
-    __u8	junk[448];
+    __u8	junk[422];
+} __attribute__ ((packed));
+
+struct boot_sector_16 {
+    __u8	ignored[3];	/* Boot strap short or near jump */
+    __u8	system_id[8];	/* Name - can be used to special case
+				   partition manager volumes */
+    __u8	sector_size[2];	/* bytes per logical sector */
+    __u8	cluster_size;	/* sectors/cluster */
+    __u16	reserved;	/* reserved sectors */
+    __u8	fats;		/* number of FATs */
+    __u8	dir_entries[2];	/* root directory entries */
+    __u8	sectors[2];	/* number of sectors */
+    __u8	media;		/* media code (unused) */
+    __u16	fat_length;	/* sectors/FAT */
+    __u16	secs_track;	/* sectors per track */
+    __u16	heads;		/* number of heads */
+    __u32	hidden;		/* hidden sectors (unused) */
+    __u32	total_sect;	/* number of sectors (if sectors == 0) */
+
+    __u8        drive_number;   /* Logical Drive Number */
+    __u8        reserved2;      /* Unused */
+
+    __u8        extended_sig;   /* Extended Signature (0x29) */
+    __u32       serial;         /* Serial number */
+    __u8        label[11];      /* FS label */
+    __u8        fs_type[8];     /* FS Type */
+
+    /* fill up to 512 bytes */
+    __u8	junk[450];
 } __attribute__ ((packed));
 
 struct info_sector {
@@ -133,6 +183,7 @@ typedef struct {
     long free_clusters;
     loff_t backupboot_start; /* 0 if not present */
     FAT_ENTRY *fat;
+    char *label;
 } DOS_FS;
 
 #ifndef offsetof
