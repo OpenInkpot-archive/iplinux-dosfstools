@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 
-include /usr/share/dpatch/dpatch.make
-
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
@@ -13,7 +11,7 @@ clean: unpatch
 	dh_clean
 
 build: build-stamp
-build-stamp: patch-stamp
+build-stamp:
 	dh_testdir
 
 	$(MAKE) DEBUGFLAGS=-g OPTFLAGS="-O2 -fomit-frame-pointer $(shell getconf LFS_CFLAGS)"
