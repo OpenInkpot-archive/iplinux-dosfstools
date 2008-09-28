@@ -41,7 +41,6 @@ binary-arch: build install
 	dh_installchangelogs CHANGES
 	dh_installdocs
 	dh_installman
-	dh_lintian
 	dh_strip --dbg-package=dosfstools-dbg
 	dh_compress
 	dh_fixperms
