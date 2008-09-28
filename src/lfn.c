@@ -1,6 +1,23 @@
-/* lfn.c  -  Functions for handling VFAT long filenames */
+/* lfn.c - Functions for handling VFAT long filenames
 
-/* Written 1998 by Roman Hodek */
+   Copyright (C) 1998 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +78,7 @@ static unsigned char fat_uni2esc[64] = {
 	copy_lfn_part( __part_uni, lfn );		\
 	cnv_unicode( __part_uni, CHARS_PER_LFN, 0 );	\
     })
-    
+
 /* Convert name parts collected so far (from previous slots) from unicode to
  * ASCII */
 #define CNV_PARTS_SO_FAR()					\
@@ -76,7 +93,7 @@ static char *cnv_unicode( const unsigned char *uni, int maxlen, int use_q )
     const unsigned char *up;
     unsigned char *out, *cp;
     int len, val;
-    
+
     for( len = 0, up = uni; (up-uni)/2 < maxlen && (up[0] || up[1]); up += 2 ){
 	if (UNICODE_CONVERTABLE(up[0],up[1]))
 	    ++len;
@@ -125,7 +142,7 @@ static void clear_lfn_slots( int start, int end )
      */
     memset( &empty, 0, sizeof(empty) );
     empty.id = DELETED_FLAG;
-    
+
     for( i = start; i <= end; ++i ) {
 	fs_write( lfn_offsets[i], sizeof(LFN_ENT), &empty );
     }
@@ -148,12 +165,15 @@ void lfn_reset( void )
 void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 {
     LFN_ENT *lfn = (LFN_ENT *)de;
+    int slot = lfn->id & LFN_ID_SLOTMASK;
     unsigned offset;
+
+    if (lfn_slot == 0) lfn_check_orphaned();
 
     if (de->attr != VFAT_LN_ATTR)
 	die("lfn_add_slot called with non-LFN directory entry");
 
-    if (lfn->id & LFN_ID_START) {
+    if (lfn->id & LFN_ID_START && slot != 0) {
 	if (lfn_slot != -1) {
 	    int can_clear = 0;
 	    /* There is already a LFN "in progess", so it is an error that a
@@ -165,7 +185,7 @@ void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 	    /* XXX: Should delay that until next LFN known (then can better
 	     * display the name) */
 	    printf( "A new long file name starts within an old one.\n" );
-	    if ((lfn->id & LFN_ID_SLOTMASK) == lfn_slot &&
+	    if (slot == lfn_slot &&
 		lfn->alias_checksum == lfn_checksum) {
 		char *part1 = CNV_THIS_PART(lfn);
 		char *part2 = CNV_PARTS_SO_FAR();
@@ -197,13 +217,13 @@ void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 		}
 	    }
 	}
-	lfn_slot = lfn->id & LFN_ID_SLOTMASK;
+	lfn_slot = slot;
 	lfn_checksum = lfn->alias_checksum;
 	lfn_unicode = alloc( (lfn_slot*CHARS_PER_LFN+1)*2 );
 	lfn_offsets = alloc( lfn_slot*sizeof(loff_t) );
 	lfn_parts = 0;
     }
-    else if (lfn_slot == -1) {
+    else if (lfn_slot == -1 && slot != 0) {
 	/* No LFN in progress, but slot found; start bit missing */
 	/* Causes: 1) start bit got lost, 2) Previous slot with start bit got
 	 *         lost */
@@ -217,32 +237,30 @@ void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 		    "3: Set start bit\n" );
 	}
 	else printf( "  Not auto-correcting this.\n" );
-	if (interactive) {
-	    switch( get_key( "123", "?" )) {
-	      case '1':
-		if (!lfn_offsets)
-		    lfn_offsets = alloc( sizeof(loff_t) );
-		lfn_offsets[0] = dir_offset;
-		clear_lfn_slots( 0, 0 );
-		lfn_reset();
-		return;
-	      case '2':
-		lfn_reset();
-		return;
-	      case '3':
-		lfn->id |= LFN_ID_START;
-		fs_write( dir_offset+offsetof(LFN_ENT,id),
-			  sizeof(lfn->id), &lfn->id );
-		lfn_slot = lfn->id & LFN_ID_SLOTMASK;
-		lfn_checksum = lfn->alias_checksum;
-		lfn_unicode = alloc( (lfn_slot*CHARS_PER_LFN+1)*2 );
-		lfn_offsets = alloc( lfn_slot*sizeof(loff_t) );
-		lfn_parts = 0;
-		break;
-	    }
+	switch( interactive ? get_key( "123", "?" ) : '2') {
+	  case '1':
+	    if (!lfn_offsets)
+	        lfn_offsets = alloc( sizeof(loff_t) );
+	    lfn_offsets[0] = dir_offset;
+	    clear_lfn_slots( 0, 0 );
+	    lfn_reset();
+	    return;
+	  case '2':
+	    lfn_reset();
+	    return;
+	  case '3':
+	    lfn->id |= LFN_ID_START;
+	    fs_write( dir_offset+offsetof(LFN_ENT,id),
+		      sizeof(lfn->id), &lfn->id );
+	    lfn_slot = slot;
+	    lfn_checksum = lfn->alias_checksum;
+	    lfn_unicode = alloc( (lfn_slot*CHARS_PER_LFN+1)*2 );
+	    lfn_offsets = alloc( lfn_slot*sizeof(loff_t) );
+	    lfn_parts = 0;
+	    break;
 	}
     }
-    else if ((lfn->id & LFN_ID_SLOTMASK) != lfn_slot) {
+    else if (slot != lfn_slot) {
 	/* wrong sequence number */
 	/* Causes: 1) seq-no destroyed */
 	/* Fixes: 1) delete LFN, 2) fix number (maybe only if following parts
@@ -251,8 +269,8 @@ void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 	int can_fix = 0;
 	printf( "Unexpected long filename sequence number "
 		"(%d vs. expected %d).\n",
-		(lfn->id & LFN_ID_SLOTMASK), lfn_slot );
-	if (lfn->alias_checksum == lfn_checksum) {
+		slot, lfn_slot );
+	if (lfn->alias_checksum == lfn_checksum && lfn_slot > 0) {
 	    char *part1 = CNV_THIS_PART(lfn);
 	    char *part2 = CNV_PARTS_SO_FAR();
 	    printf( "  It could be that just the number is wrong\n"
@@ -267,22 +285,24 @@ void lfn_add_slot( DIR_ENT *de, loff_t dir_offset )
 		printf( "3: Correct sequence number\n" );
 	}
 	else printf( "  Not auto-correcting this.\n" );
-	if (interactive) {
-	    switch( get_key( can_fix ? "123" : "12", "?" )) {
-	      case '1':
-		lfn_offsets[lfn_parts++] = dir_offset;
-		clear_lfn_slots( 0, lfn_parts-1 );
-		lfn_reset();
-		return;
-	      case '2':
-		lfn_reset();
-		return;
-	      case '3':
-		lfn->id = (lfn->id & ~LFN_ID_SLOTMASK) | lfn_slot;
-		fs_write( dir_offset+offsetof(LFN_ENT,id),
-			  sizeof(lfn->id), &lfn->id );
-		break;
+	switch( interactive ? get_key( can_fix ? "123" : "12", "?" ) : '2') {
+	  case '1':
+	    if (!lfn_offsets) {
+	        lfn_offsets = alloc( sizeof(loff_t) );
+		lfn_parts = 0;
 	    }
+	    lfn_offsets[lfn_parts++] = dir_offset;
+	    clear_lfn_slots( 0, lfn_parts-1 );
+	    lfn_reset();
+	    return;
+	  case '2':
+	    lfn_reset();
+	    return;
+	  case '3':
+	    lfn->id = (lfn->id & ~LFN_ID_SLOTMASK) | lfn_slot;
+	    fs_write( dir_offset+offsetof(LFN_ENT,id),
+		      sizeof(lfn->id), &lfn->id );
+	    break;
 	}
     }
 
@@ -359,7 +379,7 @@ char *lfn_get( DIR_ENT *de )
     char *lfn;
     __u8 sum;
     int i;
-    
+
     if (de->attr == VFAT_LN_ATTR)
 	die("lfn_get called with LFN directory entry");
 
@@ -390,25 +410,23 @@ char *lfn_get( DIR_ENT *de )
 		    "it to short name %s)\n", short_name );
 	}
 	else printf( "  Not auto-correcting this.\n" );
-	if (interactive) {
-	    switch( get_key( "123", "?" )) {
-	      case '1':
-		clear_lfn_slots( 0, lfn_parts-1 );
-		lfn_reset();
-		return NULL;
-	      case '2':
-		lfn_reset();
-		return NULL;
-	      case '3':
-		for( i = 0; i < lfn_parts; ++i ) {
-		    __u8 id = (lfn_parts-i) | (i==0 ? LFN_ID_START : 0);
-		    fs_write( lfn_offsets[i]+offsetof(LFN_ENT,id),
-			      sizeof(id), &id );
-		}
-		memmove( lfn_unicode, lfn_unicode+lfn_slot*CHARS_PER_LFN*2,
-			 lfn_parts*CHARS_PER_LFN*2 );
-		break;
+	switch( interactive ? get_key( "123", "?" ) : '2') {
+	  case '1':
+	    clear_lfn_slots( 0, lfn_parts-1 );
+	    lfn_reset();
+	    return NULL;
+	  case '2':
+	    lfn_reset();
+	    return NULL;
+	  case '3':
+	    for( i = 0; i < lfn_parts; ++i ) {
+	        __u8 id = (lfn_parts-i) | (i==0 ? LFN_ID_START : 0);
+		fs_write( lfn_offsets[i]+offsetof(LFN_ENT,id),
+			  sizeof(id), &id );
 	    }
+	    memmove( lfn_unicode, lfn_unicode+lfn_slot*CHARS_PER_LFN*2,
+		     lfn_parts*CHARS_PER_LFN*2 );
+	    break;
 	}
     }
 

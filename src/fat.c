@@ -1,6 +1,24 @@
-/* fat.c  -  Read/write access to the FAT */
+/* fat.c - Read/write access to the FAT
 
-/* Written 1993 by Werner Almesberger */
+   Copyright (C) 1993 Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
+   Copyright (C) 1998 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
 
 /* FAT32, VFAT, Atari format support, and various fixes additions May 1998
  * by Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de> */
@@ -51,19 +69,16 @@ void read_fat(DOS_FS *fs)
 {
     int eff_size;
     unsigned long i;
-    void *first,*second,*use;
+    void *first,*second = NULL;
     int first_ok,second_ok;
 
-    eff_size = ((fs->clusters+2)*fs->fat_bits+7)/8;
+    eff_size = ((fs->clusters+2ULL)*fs->fat_bits+7)/8ULL;
     first = alloc(eff_size);
     fs_read(fs->fat_start,eff_size,first);
-    use = first;
     if (fs->nfats > 1) {
 	second = alloc(eff_size);
 	fs_read(fs->fat_start+fs->fat_size,eff_size,second);
     }
-    else
-	second = NULL;
     if (second && memcmp(first,second,eff_size) != 0) {
 	FAT_ENTRY first_media, second_media;
 	get_fat(&first_media,first,0,fs);
@@ -72,24 +87,28 @@ void read_fat(DOS_FS *fs)
 	second_ok = (second_media.value & FAT_EXTD(fs)) == FAT_EXTD(fs);
 	if (first_ok && !second_ok) {
 	    printf("FATs differ - using first FAT.\n");
-	    fs_write(fs->fat_start+fs->fat_size,eff_size,use = first);
+	    fs_write(fs->fat_start+fs->fat_size,eff_size,first);
 	}
 	if (!first_ok && second_ok) {
 	    printf("FATs differ - using second FAT.\n");
-	    fs_write(fs->fat_start,eff_size,use = second);
+	    fs_write(fs->fat_start,eff_size,second);
+	    memcpy(first,second,eff_size);
 	}
 	if (first_ok && second_ok) {
 	    if (interactive) {
 		printf("FATs differ but appear to be intact. Use which FAT ?\n"
 		  "1) Use first FAT\n2) Use second FAT\n");
-		if (get_key("12","?") == '1')
-		    fs_write(fs->fat_start+fs->fat_size,eff_size,use = first);
-		else fs_write(fs->fat_start,eff_size,use = second);
+		if (get_key("12","?") == '1') {
+		    fs_write(fs->fat_start+fs->fat_size,eff_size,first);
+		} else {
+		    fs_write(fs->fat_start,eff_size,second);
+		    memcpy(first,second,eff_size);
+		}
 	    }
 	    else {
 		printf("FATs differ but appear to be intact. Using first "
 		  "FAT.\n");
-		fs_write(fs->fat_start+fs->fat_size,eff_size,use = first);
+		fs_write(fs->fat_start+fs->fat_size,eff_size,first);
 	    }
 	}
 	if (!first_ok && !second_ok) {
@@ -97,8 +116,11 @@ void read_fat(DOS_FS *fs)
 	    exit(1);
 	}
     }
-    fs->fat = qalloc(&mem_queue,sizeof(FAT_ENTRY)*(fs->clusters+2));
-    for (i = 2; i < fs->clusters+2; i++) get_fat(&fs->fat[i],use,i,fs);
+    if (second) {
+          free(second);
+    }
+    fs->fat = qalloc(&mem_queue,sizeof(FAT_ENTRY)*(fs->clusters+2ULL));
+    for (i = 2; i < fs->clusters+2; i++) get_fat(&fs->fat[i],first,i,fs);
     for (i = 2; i < fs->clusters+2; i++)
 	if (fs->fat[i].value >= fs->clusters+2 &&
 	    (fs->fat[i].value < FAT_MIN_BAD(fs))) {
@@ -107,8 +129,6 @@ void read_fat(DOS_FS *fs)
 	    set_fat(fs,i,-1);
 	}
     free(first);
-    if (second)
-	free(second);
 }
 
 
@@ -177,7 +197,7 @@ unsigned long next_cluster(DOS_FS *fs,unsigned long cluster)
 
 loff_t cluster_start(DOS_FS *fs,unsigned long cluster)
 {
-    return fs->data_start+((loff_t)cluster-2)*fs->cluster_size;
+    return fs->data_start+((loff_t)cluster-2)*(unsigned long long)fs->cluster_size;
 }
 
 
@@ -225,8 +245,8 @@ void reclaim_free(DOS_FS *fs)
 	    reclaimed++;
 	}
     if (reclaimed)
-	printf("Reclaimed %d unused cluster%s (%d bytes).\n",reclaimed,
-	  reclaimed == 1 ?  "" : "s",reclaimed*fs->cluster_size);
+	printf("Reclaimed %d unused cluster%s (%llu bytes).\n",reclaimed,
+	  reclaimed == 1 ?  "" : "s",(unsigned long long)reclaimed*fs->cluster_size);
 }
 
 
@@ -305,8 +325,8 @@ void reclaim_file(DOS_FS *fs)
 	    fs_write(offset,sizeof(DIR_ENT),&de);
 	}
     if (reclaimed)
-	printf("Reclaimed %d unused cluster%s (%d bytes) in %d chain%s.\n",
-	  reclaimed,reclaimed == 1 ? "" : "s",reclaimed*fs->cluster_size,files,
+	printf("Reclaimed %d unused cluster%s (%llu bytes) in %d chain%s.\n",
+	  reclaimed,reclaimed == 1 ? "" : "s",(unsigned long long)reclaimed*fs->cluster_size,files,
 	  files == 1 ? "" : "s");
 }
 

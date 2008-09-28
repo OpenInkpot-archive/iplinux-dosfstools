@@ -1,6 +1,24 @@
-/* check.c  -  Check and repair a PC/MS-DOS file system */
+/* check.c - Check and repair a PC/MS-DOS file system
 
-/* Written 1993 by Werner Almesberger */
+   Copyright (C) 1993 Werner Almesberger <werner.almesberger@lrc.di.epfl.ch>
+   Copyright (C) 1998 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+   On Debian systems, the complete text of the GNU General Public License
+   can be found in /usr/share/common-licenses/GPL-3 file.
+*/
 
 /* FAT32, VFAT, Atari format support, and various fixes additions May 1998
  * by Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de> */
@@ -69,7 +87,7 @@ loff_t alloc_rootdir_entry(DOS_FS *fs, DIR_ENT *de, const char *pattern)
 	int i = 0, got = 0;
 	unsigned long clu_num, prev = 0;
 	loff_t offset2;
-	
+
 	clu_num = fs->root_cluster;
 	offset = cluster_start(fs,clu_num);
 	while (clu_num > 0 && clu_num != -1) {
@@ -226,7 +244,7 @@ static int bad_name(unsigned char *name)
      * of OS/2. */
     if (strncmp(name,"EA DATA  SF",11) == 0 ||
         strncmp(name,"WP ROOT  SF",11) == 0) return 0;
-    
+
     for (i = 0; i < 8; i++) {
 	if (name[i] < ' ' || name[i] == 0x7f) return 1;
 	if (name[i] > 0x7f) ++suspicious;
@@ -262,7 +280,7 @@ static int bad_name(unsigned char *name)
     /* Under GEMDOS, chars >= 128 are never allowed. */
     if (atari_format && suspicious)
 	return 1;
-    
+
     /* Only complain about too much suspicious chars in interactive mode,
      * never correct them automatically. The chars are all basically ok, so we
      * shouldn't auto-correct such names. */
@@ -288,7 +306,7 @@ static void truncate_file(DOS_FS *fs,DOS_FILE *file,unsigned long clusters)
 {
     int deleting;
     unsigned long walk,next,prev;
-    
+
     walk = FSTART(file,fs);
     prev = 0;
     if ((deleting = !clusters)) MODIFY_START(file,0,fs);
@@ -305,14 +323,14 @@ static void truncate_file(DOS_FS *fs,DOS_FILE *file,unsigned long clusters)
 static void auto_rename(DOS_FILE *file)
 {
     DOS_FILE *first,*walk;
-    int number;
+    unsigned long int number;
 
     if (!file->offset) return;	/* cannot rename FAT32 root dir */
     first = file->parent ? file->parent->first : root;
     number = 0;
     while (1) {
-	sprintf(file->dir_ent.name,"FSCK%04d",number);
-	strncpy(file->dir_ent.ext,"REN",3);
+	sprintf(file->dir_ent.name, "FSCK%04d", number / 1000);
+	sprintf(file->dir_ent.name, "%03d", number % 1000);
 	for (walk = first; walk; walk = walk->next)
 	    if (walk != file && !strncmp(walk->dir_ent.name,file->dir_ent.
 	      name,MSDOS_NAME)) break;
@@ -321,6 +339,9 @@ static void auto_rename(DOS_FILE *file)
 	    return;
 	}
 	number++;
+	if (number > 9999999) {
+		die("Too many files need repair.");
+	}
     }
     die("Can't generate a unique name.");
 }
@@ -450,10 +471,10 @@ static int check_file(DOS_FS *fs,DOS_FILE *file)
 	    break;
 	}
 	if (!(file->dir_ent.attr & ATTR_DIR) && CF_LE_L(file->dir_ent.size) <=
-	  clusters*fs->cluster_size) {
-	    printf("%s\n  File size is %u bytes, cluster chain length is > %lu "
+	  (unsigned long long)clusters*fs->cluster_size) {
+	    printf("%s\n  File size is %u bytes, cluster chain length is > %llu "
 	      "bytes.\n  Truncating file to %u bytes.\n",path_name(file),
-	      CF_LE_L(file->dir_ent.size),clusters*fs->cluster_size,
+	      CF_LE_L(file->dir_ent.size),(unsigned long long)clusters*fs->cluster_size,
 	      CF_LE_L(file->dir_ent.size));
 	    truncate_file(fs,file,clusters);
 	    break;
@@ -469,20 +490,20 @@ static int check_file(DOS_FS *fs,DOS_FILE *file)
 		else clusters2++;
 	    restart = file->dir_ent.attr & ATTR_DIR;
 	    if (!owner->offset) {
-		printf( "  Truncating second to %lu bytes because first "
-			"is FAT32 root dir.\n", clusters2*fs->cluster_size );
+		printf( "  Truncating second to %llu bytes because first "
+			"is FAT32 root dir.\n", (unsigned long long)clusters2*fs->cluster_size );
 		do_trunc = 2;
 	    }
 	    else if (!file->offset) {
-		printf( "  Truncating first to %lu bytes because second "
-			"is FAT32 root dir.\n", clusters*fs->cluster_size );
+		printf( "  Truncating first to %llu bytes because second "
+			"is FAT32 root dir.\n", (unsigned long long)clusters*fs->cluster_size );
 		do_trunc = 1;
 	    }
 	    else if (interactive)
-		printf("1) Truncate first to %lu bytes%s\n"
-		  "2) Truncate second to %lu bytes\n",clusters*fs->cluster_size,
-		  restart ? " and restart" : "",clusters2*fs->cluster_size);
-	    else printf("  Truncating second to %lu bytes.\n",clusters2*
+		printf("1) Truncate first to %llu bytes%s\n"
+		  "2) Truncate second to %llu bytes\n",(unsigned long long)clusters*fs->cluster_size,
+		  restart ? " and restart" : "",(unsigned long long)clusters2*fs->cluster_size);
+	    else printf("  Truncating second to %llu bytes.\n",(unsigned long long)clusters2*
 		  fs->cluster_size);
 	    if (do_trunc != 2 &&
 		(do_trunc == 1 ||
@@ -494,12 +515,13 @@ static int check_file(DOS_FS *fs,DOS_FILE *file)
 		    if (this == curr) {
 			if (prev) set_fat(fs,prev,-1);
 			else MODIFY_START(owner,0,fs);
-			MODIFY(owner,size,CT_LE_L(clusters*fs->cluster_size));
+			MODIFY(owner,size,CT_LE_L((unsigned long long)clusters*fs->cluster_size));
 			if (restart) return 1;
 			while (this > 0 && this != -1) {
 			    set_owner(fs,this,NULL);
 			    this = next_cluster(fs,this);
 			}
+			this = curr;
 			break;
 		    }
 		    clusters++;
@@ -520,11 +542,11 @@ static int check_file(DOS_FS *fs,DOS_FILE *file)
 	prev = curr;
     }
     if (!(file->dir_ent.attr & ATTR_DIR) && CF_LE_L(file->dir_ent.size) >
-      clusters*fs->cluster_size) {
-	printf("%s\n  File size is %u bytes, cluster chain length is %lu bytes."
+      (unsigned long long)clusters*fs->cluster_size) {
+	printf("%s\n  File size is %u bytes, cluster chain length is %llu bytes."
 	  "\n  Truncating file to %lu bytes.\n",path_name(file),CF_LE_L(file->
-	  dir_ent.size),clusters*fs->cluster_size,clusters*fs->cluster_size);
-	MODIFY(file,size,CT_LE_L(clusters*fs->cluster_size));
+	  dir_ent.size),(unsigned long long)clusters*fs->cluster_size,(unsigned long long)clusters*fs->cluster_size);
+	MODIFY(file,size,CT_LE_L((unsigned long long)clusters*fs->cluster_size));
     }
     return 0;
 }
@@ -731,7 +753,7 @@ static void undelete(DOS_FS *fs,DOS_FILE *file)
     if (left)
 	printf("Warning: Did only undelete %lu of %lu cluster%s.\n",clusters-left,
 	  clusters,clusters == 1 ? "" : "s");
-   
+
 }
 
 
