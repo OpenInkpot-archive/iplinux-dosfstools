@@ -57,6 +57,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
@@ -283,6 +284,7 @@ static int check = FALSE;	/* Default to no readablity checking */
 static int verbose = 0;		/* Default to verbose mode off */
 static long volume_id;		/* Volume ID number */
 static time_t create_time;	/* Creation time */
+static struct timeval create_timeval;	/* Creation time */
 static char volume_name[] = "           "; /* Volume name */
 static unsigned long long blocks;	/* Number of blocks in filesystem */
 static int sector_size = 512;	/* Size of a logical sector */
@@ -1427,8 +1429,9 @@ main (int argc, char **argv)
 	program_name = p+1;
   }
 
-  time(&create_time);
-  volume_id = (long)create_time;	/* Default volume ID = creation time */
+  gettimeofday(&create_timeval, NULL);
+  create_time = create_timeval.tv_sec;
+  volume_id = (u_int32_t)( (create_timeval.tv_sec << 20) | create_timeval.tv_usec );	/* Default volume ID = creation time, fudged for more uniqueness */
   check_atari();
 
   printf ("%s " VERSION " (" VERSION_DATE ")\n",
@@ -1711,7 +1714,7 @@ main (int argc, char **argv)
 	(statbuf.st_rdev & 0xff3f) == 0x0d00 || /* xd */
 	(statbuf.st_rdev & 0xff3f) == 0x1600 )  /* hdc, hdd */
 	)
-      die ("Will not try to make filesystem on full-disk device '%s' (use -I if wanted)");
+      die ("Device partition expected, not making filesystem on entire device '%s' (use -I to override)");
 
   if (sector_size_set)
     {
