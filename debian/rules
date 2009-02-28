@@ -25,6 +25,9 @@ install: build
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/dosfstools PREFIX=/usr SBINDIR=/sbin install
 
+	# Removing double files
+	rm -f debian/dosfstools/usr/share/doc/dosfstools/ChangeLog
+
 binary: binary-arch
 
 binary-arch: build install
