@@ -1,3 +1,12 @@
+dosfstools (3.0.2-1) unstable; urgency=low
+
+  * Merging upstream version 3.0.2.
+  * Removing double files.
+  * Prefixing debhelper files with package name.
+  * Updating year in copyright.
+
+ -- Daniel Baumann <daniel@debian.org>  Sat, 28 Feb 2009 09:57:00 +0100
+
 dosfstools (3.0.1-1) unstable; urgency=low
 
   * Replacing obsolete dh_clean -k with dh_prep.
