@@ -49,7 +49,7 @@ dosfstools (2.11-6) unstable; urgency=high
   * Temporarily disabling bootcode.dpatch since it breaks syslinux,
     thanks to Joey Hess <joeyh@debian.org> (Closes: #489292).
 
- -- Daniel Baumann <daniel@debian.org>  Fri,  4 Jul 2008 20:28:00 +0200
+ -- Daniel Baumann <daniel@debian.org>  Fri, 04 Jul 2008 20:28:00 +0200
 
 dosfstools (2.11-5) unstable; urgency=medium
 
@@ -113,7 +113,7 @@ dosfstools (2.11-2.2) unstable; urgency=low
   * Non-maintainer upload.
   * Apply Ubuntu patches. Closes: #417673
 
- -- Andreas Barth <aba@not.so.argh.org>  Sat,  9 Jun 2007 21:18:21 +0000
+ -- Andreas Barth <aba@not.so.argh.org>  Sat, 09 Jun 2007 21:18:21 +0000
 
 dosfstools (2.11-2.1) unstable; urgency=low
 
@@ -123,7 +123,7 @@ dosfstools (2.11-2.1) unstable; urgency=low
     believe their install has failed.  Thanks to Khalid Aziz for the patch.
     Closes: #258839.
 
- -- dann frazier <dannf@debian.org>  Thu,  9 Jun 2005 18:14:45 -0600
+ -- dann frazier <dannf@debian.org>  Thu, 09 Jun 2005 18:14:45 -0600
 
 dosfstools (2.11-2) unstable; urgency=low
 
@@ -135,7 +135,7 @@ dosfstools (2.11-2) unstable; urgency=low
   * #302517 was indeed the same as #294177, and fix is the same (use __u8) as
     in 2.11-1. Closes: #302517.
 
- -- Roman Hodek <roman@hodek.net>  Sun,  3 Apr 2005 13:56:55 +0200
+ -- Roman Hodek <roman@hodek.net>  Sun, 03 Apr 2005 13:56:55 +0200
 
 dosfstools (2.11-1) unstable; urgency=low
 
