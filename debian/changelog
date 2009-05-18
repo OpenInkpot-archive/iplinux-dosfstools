@@ -1,3 +1,13 @@
+dosfstools (3.0.3-1) unstable; urgency=low
+
+  * Merging upstream version 3.0.3:
+  * Tidy rules file.
+  * Upgrading to standards 3.8.1.
+  * Rewriting copyright file for upstream version 3.x.
+  * Using correct rfc-2822 date formats in changelog.
+
+ -- Daniel Baumann <daniel@debian.org>  Mon, 18 May 2009 15:23:49 +0200
+
 dosfstools (3.0.2-1) unstable; urgency=low
 
   * Merging upstream version 3.0.2.
