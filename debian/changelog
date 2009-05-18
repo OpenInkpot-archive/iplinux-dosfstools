@@ -1,6 +1,7 @@
 dosfstools (3.0.3-1) unstable; urgency=low
 
   * Merging upstream version 3.0.3:
+    - Also declaring arm as an unaligned architecture, see Debian bug #502961.
   * Tidy rules file.
   * Upgrading to standards 3.8.1.
   * Rewriting copyright file for upstream version 3.x.
