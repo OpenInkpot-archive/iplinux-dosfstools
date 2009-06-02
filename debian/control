@@ -20,7 +20,7 @@ Description: utilities for making and checking MS-DOS FAT filesystems
  well as provides a default dummy boot sector code.
 
 Package: dosfstools-dbg
-Section: devel
+Section: debug
 Priority: extra
 Architecture: any
 Depends: dosfstools (= ${binary:Version})
