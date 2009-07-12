@@ -1,16 +1,42 @@
 #!/usr/bin/make -f
 
-%:
-	dh ${@}
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
 
-override_dh_auto_test:
-	# disabled
+	$(MAKE) distclean
 
-override_dh_auto_install:
-	dh_auto_install -- DESTDIR=$(CURDIR)/debian/dosfstools PREFIX=/usr SBINDIR=/sbin
+	dh_clean
 
-	# Removing useless files
-	rm -f debian/dosfstools/usr/share/doc/dosfstools/ChangeLog
+build: build-stamp
+build-stamp:
+	dh_testdir
 
-override_dh_strip:
+	$(MAKE)
+
+	touch build-stamp
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+
+	$(MAKE) DESTDIR=$(CURDIR)/debian/dosfstools PREFIX=/usr SBINDIR=/sbin install-bin
+
+binary: binary-arch
+
+binary-arch: install
+	dh_testdir
+	dh_testroot
 	dh_strip --dbg-package=dosfstools-dbg
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_builddeb
+
+binary-indep:
+
+.PHONY: clean build install binary binary-arch binary-indep

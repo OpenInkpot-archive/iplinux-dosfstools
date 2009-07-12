@@ -30,10 +30,15 @@ dosfstools (3.0.4-1) unstable; urgency=low
 
  -- Daniel Baumann <daniel@debian.org>  Tue, 21 Jul 2009 08:17:00 +0200
 
+dosfstools (3.0.3-2) asimov; urgency=low
+
+  * First build for IPlinux.
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Sun, 12 Jul 2009 15:59:27 +0700
+
 dosfstools (3.0.3-1) unstable; urgency=low
 
   * Merging upstream version 3.0.3:
-    - Also declaring arm as an unaligned architecture, see Debian bug #502961.
   * Tidy rules file.
   * Upgrading to standards 3.8.1.
   * Rewriting copyright file for upstream version 3.x.
