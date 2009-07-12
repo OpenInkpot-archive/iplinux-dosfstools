@@ -1,12 +1,12 @@
 Source: dosfstools
-Section: otherosfs
+Section: core
 Priority: optional
-Maintainer: Daniel Baumann <daniel@debian.org>
+Maintainer: Mikhail Gusarov <dottedmag@dottedmag.net>
 Build-Depends: debhelper (>= 7)
+XCS-Cross-Host-Build-Depends: debhelper (>= 7)
+XCS-Cross-Build-Depends:
 Standards-Version: 3.8.1
 Homepage: http://www.daniel-baumann.ch/software/dosfstools/
-Vcs-Browser: http://git.debian.net/?p=debian/dosfstools.git
-Vcs-Git: git://git.debian.net/git/debian/dosfstools.git
 
 Package: dosfstools
 Architecture: any
