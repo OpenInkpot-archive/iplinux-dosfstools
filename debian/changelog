@@ -1,3 +1,12 @@
+dosfstools (3.0.4-1) unstable; urgency=low
+
+  * Adding reference to #502961 in previous changelog entry.
+  * Updating section of the debug package.
+  * Merging upstream version 3.0.4.
+  * Updating package to standards version 3.8.2.
+
+ -- Daniel Baumann <daniel@debian.org>  Tue, 21 Jul 2009 08:17:00 +0200
+
 dosfstools (3.0.3-1) unstable; urgency=low
 
   * Merging upstream version 3.0.3:
