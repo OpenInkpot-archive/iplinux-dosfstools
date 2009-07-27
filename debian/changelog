@@ -1,3 +1,11 @@
+dosfstools (3.0.5-1) unstable; urgency=low
+
+  * Merging upstream version 3.0.5:
+    - fixes bug from VFAT patent avoidance patch that can resultin data loss
+      (Closes: #538758).
+
+ -- Daniel Baumann <daniel@debian.org>  Mon, 27 Jul 2009 14:38:51 +0200
+
 dosfstools (3.0.4-1) unstable; urgency=low
 
   * Adding reference to #502961 in previous changelog entry.
