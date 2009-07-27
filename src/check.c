@@ -254,7 +254,7 @@ static int bad_name(DOS_FILE *file)
 {
     int i, spc, suspicious = 0;
     char *bad_chars = atari_format ? "*?\\/:" : "*?<>|\"\\/:";
-    char *name = file->dir_ent.name;
+    unsigned char *name = file->dir_ent.name;
 
     /* Do not complain about (and auto-correct) the extended attribute files
      * of OS/2. */
@@ -263,7 +263,7 @@ static int bad_name(DOS_FILE *file)
 
     /* don't complain about the dummy 11 bytes used by patched Linux
        kernels */
-    if (file->lfn && name[0] == ' ') return 0;
+    if (file->dir_ent.lcase & FAT_NO_83NAME) return 0;
 
     for (i = 0; i < 8; i++) {
 	if (name[i] < ' ' || name[i] == 0x7f) return 1;
