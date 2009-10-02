@@ -30,7 +30,4 @@ Description: utilities for making and checking MS-DOS FAT filesystems (debug)
  dosfsck (aka fsck.msdos and fsck.vfat) utilities, which respectively make and
  check MS-DOS FAT filesystems on hard drives or on floppies.
  .
- This version uses the enhanced boot sector/superblock format of DOS 3.3+ as
- well as provides a default dummy boot sector code.
- .
  This package contains the debugging symbols.
