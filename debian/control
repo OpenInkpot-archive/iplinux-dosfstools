@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Daniel Baumann <daniel@lists.debian-maintainers.org>
 Uploaders: Daniel Baumann <daniel@debian.org>
 Build-Depends: debhelper (>= 7)
-Standards-Version: 3.8.2
+Standards-Version: 3.8.3
 Homepage: http://www.daniel-baumann.ch/software/dosfstools/
 Vcs-Browser: http://git.debian-maintainers.org/git/daniel/dosfstools.git
 Vcs-Git: git://git.debian-maintainers.org/git/daniel/dosfstools.git
