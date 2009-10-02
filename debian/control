@@ -11,7 +11,7 @@ Vcs-Git: git://git.debian-maintainers.org/git/daniel/dosfstools.git
 
 Package: dosfstools
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: utilities for making and checking MS-DOS FAT filesystems
  The dosfstools package includes the mkdosfs (aka mkfs.dos and mkfs.vfat) and
  dosfsck (aka fsck.msdos and fsck.vfat) utilities, which respectively make and
