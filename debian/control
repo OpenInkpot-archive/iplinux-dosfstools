@@ -24,7 +24,7 @@ Package: dosfstools-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: dosfstools (= ${binary:Version})
+Depends: ${misc:Depends}, dosfstools (= ${binary:Version})
 Description: utilities for making and checking MS-DOS FAT filesystems (debug)
  The dosfstools package includes the mkdosfs (aka mkfs.dos and mkfs.vfat) and
  dosfsck (aka fsck.msdos and fsck.vfat) utilities, which respectively make and
