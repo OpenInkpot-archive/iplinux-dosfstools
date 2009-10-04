@@ -1,3 +1,18 @@
+dosfstools (3.0.6-1) unstable; urgency=low
+
+  * Updating maintainer field.
+  * Updating vcs fields.
+  * Updating package to standards version 3.8.3.
+  * Sorting depends.
+  * Adding misc depends to debug package.
+  * Shortening long description of debug package.
+  * Minimizing rules file.
+  * Bumping versioned build-depends on debhelper.
+  * Removing not used patch from debian directory.
+  * Merging upstream version 3.0.6.
+
+ -- Daniel Baumann <daniel@debian.org>  Sun, 04 Oct 2009 11:06:57 +0200
+
 dosfstools (3.0.5-1) unstable; urgency=low
 
   * Merging upstream version 3.0.5:
