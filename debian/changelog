@@ -1,3 +1,10 @@
+dosfstools (3.0.6-1.ip1) asimov; urgency=low
+
+  * IPlinux build.
+  * Fix selection of cross-compiler (no more x86-64 binaries on mips).
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Tue, 20 Oct 2009 02:17:14 +0700
+
 dosfstools (3.0.6-1) unstable; urgency=low
 
   * Updating maintainer field.
