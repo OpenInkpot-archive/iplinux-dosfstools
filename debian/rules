@@ -1,5 +1,11 @@
 #!/usr/bin/make -f
 
+ifeq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+  CC=gcc
+else
+  CC=$(DEB_HOST_GNU_TYPE)-gcc
+endif
+
 clean:
 	dh_testdir
 	dh_testroot
@@ -13,7 +19,7 @@ build: build-stamp
 build-stamp:
 	dh_testdir
 
-	$(MAKE)
+	$(MAKE) CC=$(CC)
 
 	touch build-stamp
 
